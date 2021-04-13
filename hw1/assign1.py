@@ -16,7 +16,6 @@ class Puzzle:
         self.wolf = 0
         self.__read_file(file_name)
         self.nodes[self.start] = {}
-        self.visited[self.start] = False
         self.visited[(0, 0)] = False        # Starting point empty init to false
 
     def __read_file(self, file):
@@ -67,27 +66,23 @@ class Puzzle:
             return False
 
     def gen_all_nodes(self, chicken, wolf, tree):
-        while True:
-            if chicken == 0 and wolf == 0:
-                break
-            nodes = self.__next_nodes(chicken, wolf)
-            # Use current chicken, wolf as key and all possible nodes as value
-            #tree[(chicken, wolf)] = nodes
-            keys = tree.keys()
-            for key in keys:
-                # if key in self.visited:
-                #     if self.visited[key]:
-                #         break
-                #     else:
-                #         self.visited[key] = True
-                # else:
+
+        if chicken == 0 and wolf == 0:
+            return tree
+        nodes = self.__next_nodes(chicken, wolf)
+        # Use current chicken, wolf as key and all possible nodes as value
+        #tree[(chicken, wolf)] = nodes
+        keys = tree.keys()
+        for key in keys:
+            if key == (0, 0):
+                return tree
+            else:
                 self.visited[key] = False
                 chicken = key[0]
                 wolf = key[1]
                 nodes = self.__next_nodes(chicken, wolf)
                 tree[key] = nodes
                 self.gen_all_nodes(chicken, wolf, tree[key])
-
 
         return tree
 
@@ -121,6 +116,14 @@ class Puzzle:
             # Take one chicken and one wolf to end
             nodes[(chn - 1, wolf - 1)] = {}
         return nodes
+
+
+def bfs(g):
+    """ Breadth first search
+    :return
+        solution or fail
+    """
+
 
 
 def pretty_print(_dict, i=0):
