@@ -132,9 +132,10 @@ class Puzzle:
         :param mode: Algorithm selection
         :return: Method containing requested algorithm
         """
-        def not_found():
+        def not_found(_, __):
             print_err("Invalid method")
             exit(1)
+        mode = 'itr_dfs' if mode == 'iddfs' else mode
         func = getattr(self, mode, not_found)
         return func
 
@@ -183,7 +184,6 @@ class Puzzle:
         """
         return False if node[0] != 0 and node[0] < node[1] else True
 
-
     def __next_node(self, node, idx):
         """ Get list of next nodes
 
@@ -203,7 +203,7 @@ class Puzzle:
         :param node: Node to check
         :return: Bool, True if node is valid
         """
-        if self.check_banks(node) and self.check_banks([self.start[i]-node[i] for i in range(self.BANK_SIZE)]):
+        if self.check_banks(node) and self.check_banks([self.start[i] - node[i] for i in range(self.BANK_SIZE)]):
             if self.validate_move(node):
                 return True
         return False
@@ -238,7 +238,7 @@ class Puzzle:
         # End goal reached
         if self.end in path:
             return
-        if tuple(node) not in self.visited:
+        if tuple(node) not in self.visited and self.check_node(node):
             self.visited[tuple(node)] = True
             path.append(node)
 
@@ -265,7 +265,7 @@ class Puzzle:
                 path.append(node)
                 return
             # Check if not in path or current bank location is not previous
-            if not path or node[2] != path[-1][2] and self.check_banks(node):
+            if not path or (node[2] != path[-1][2] and self.check_node(node)):
                 path.append(node)
             self.count += 1
             for n in self._successor(node):
@@ -289,7 +289,7 @@ class Puzzle:
             if top == self.end:
                 path.append(top)
                 return
-            if tuple(top) not in self.visited:
+            if tuple(top) not in self.visited and self.check_node(top):
                 self.visited[tuple(top)] = True
                 path.append(top)
             self.count += 1
@@ -305,11 +305,12 @@ class Puzzle:
         :param path: empty path to return
         :return: path
         """
-
+        path_ = []
         while curr_node is not None:
-            path.append(curr_node.state)
+            path_.append(curr_node.state)
             curr_node = curr_node.parent
-        return path[::-1]
+        for i in path_[::-1]:
+            path.append(i)
 
     def heuristic(self, node, cost):
         """ Calculate Euclidean distance
@@ -344,6 +345,8 @@ class Puzzle:
             self.count += 1
             # Get all possible nodes from current
             for n in self._successor(curr_node.state):
+                if not self.check_node(n):
+                    continue
                 loc_node = Node(curr_node, n)
 
                 if tuple(n) in self.visited:
