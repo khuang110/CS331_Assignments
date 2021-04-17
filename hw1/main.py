@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 
 """ River Crossing Puzzle with BFS, DFS, iterative DFS, and A* algorithm implementation.
     By: Kyle Huang
@@ -86,8 +85,13 @@ class Puzzle:
         :return:
         """
         with open(file, mode='r') as f:
-            l1 = f.readline()
-            l2 = [int(i.strip()) for i in f.readline().split(',')]
+            try:
+                l1 = f.readline()
+                l2 = [int(float(i.strip())) for i in f.readline().split(',')]
+
+            except ValueError as e:
+                print_err("Error: ", e)
+                exit(1)
             self.start = [l2[0], l2[1], l2[2]]
             self.c = l2[0]
             self.w = l2[1]
@@ -101,13 +105,24 @@ class Puzzle:
                     0: stdout, 1: file
         :return: file output
         """
+        magenta = "\u001b[35;1m"
+        yellow = "\u001b[33;1m"
+        red = "\u001b[31;1m"
+        green = "\u001b[32;1m"
+        reset = "\u001b[0m"
+
         if mode:
             sys.stdout = open(out_file, mode='w')
+            magenta = yellow = red = green = reset = ''
+
         prev = path[0]
         print("Number of moves: %d"% (len(path)-1))
+        print("[%sChicken%s, %sWolf%s, Start:%s1%s/End:%s0%s]"% (green,reset,red,reset,magenta,reset,yellow,reset))
+
         for curr in path:
             self.to_string(curr, prev)
-            print(curr)
+            c = magenta + str(curr[2]) if curr[2] == 1 else yellow + str(curr[2])
+            print("[",green,curr[0],reset,", ",red,curr[1],reset,", ", c,reset,"]")
             prev = curr
         sys.stdout.close()
 
@@ -167,6 +182,7 @@ class Puzzle:
         :return: bool: true if bank is valid
         """
         return False if node[0] != 0 and node[0] < node[1] else True
+
 
     def __next_node(self, node, idx):
         """ Get list of next nodes
@@ -249,7 +265,7 @@ class Puzzle:
                 path.append(node)
                 return
             # Check if not in path or current bank location is not previous
-            if not path or node[2] != path[-1][2]:
+            if not path or node[2] != path[-1][2] and self.check_banks(node):
                 path.append(node)
             self.count += 1
             for n in self._successor(node):
@@ -358,14 +374,14 @@ def main(argc, argv):
     :param argc: arg count
     :param argv: <initial state file> <goal state file> <mode> <output file>
     """
-    if argc != 4:
+    if argc > 5 or argc < 4:
         print_err("Wrong number of arguments!!")
         print_err("Usage:")
-        print_err("\tpython3 main.py <initial state file> <goal state file> <mode> <output file>")
+        print_err("\tpython3 main.py <initial state file> <goal state file> <mode> <output file> <Debug:[y]>")
         exit(1)
     else:
-        # No debug flag
-        if __debug__:
+        debug = True if argc == 5 else False
+        if not debug:
             modes = ['bfs',
                      'dfs',
                      'iddfs',
@@ -418,4 +434,3 @@ def main(argc, argv):
 
 if __name__ == "__main__":
     main(len(sys.argv[1:]), sys.argv[1:])
-
