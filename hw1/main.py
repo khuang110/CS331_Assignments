@@ -1,5 +1,13 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+""" River Crossing Puzzle with BFS, DFS, iterative DFS, and A* algorithm implementation.
+    By: Kyle Huang
+"""
+
 import sys
 from math import sqrt
+import heapq as hq
 
 
 class Node:
@@ -18,6 +26,42 @@ class Node:
         return self.state == other
 
 
+class PriorityQueue:
+    """ Implementation of priority queue using heapq.
+        Used for A* algorithm
+    """
+    def __init__(self):
+        self._data = []
+        self._i = 0
+
+    def pop(self):
+        """ Pop from queue
+        :return:
+        """
+        return hq.heappop(self._data)[-1]
+
+    def push(self, node, p):
+        """ Push onto queue
+        :param node: node to insert into queue
+        :param p: priority
+        :return:
+        """
+        hq.heappush(self._data, (p, self._i, node))
+        self._i += 1
+
+    def __iter__(self):
+        self._idx = 0
+        return self
+
+    def __next__(self):
+        if len(self._data) > self._idx:
+            res = self._data[self._idx]
+            self._idx += 1
+            return res
+        else:
+            raise StopIteration
+
+
 class Puzzle:
     # Constants
     BANK_SIZE = 3
@@ -33,6 +77,7 @@ class Puzzle:
     def __init__(self, in_file):
         self._read_file(in_file)
         self.visited = {}           # Visited nodes
+        self.count = 0              # Number of nodes expanded
 
     def _read_file(self, file):
         """ Read start and end points from file
@@ -162,26 +207,31 @@ class Puzzle:
                 stack.append(neighbor)
         return stack
 
-    def dfs(self, node, path):
+    def dfs(self, node, path, count_r=0):
         """ Depth First Search
 
         :param node: list of nodes
         :param path: Solution to puzzle, empty initially
+        :param count_r: Recursion counter
         :return: (list): list of nodes
         """
-        # End goal reached
-        if self.end in path:
-            return path
+        # Base case
         if node == self.end:
             path.append(node)
-            return path
+            return
+        # End goal reached
+        if self.end in path:
+            return
         if tuple(node) not in self.visited:
             self.visited[tuple(node)] = True
             path.append(node)
 
+        self.count += 1
         for n in self._successor(node):
             if tuple(n) not in self.visited:
-                self.dfs(n, path)
+                count_r += 1
+                self.dfs(n, path, count_r)
+        return count_r
 
     def bfs(self, node, path):
         """ Breadth First Search
@@ -198,8 +248,10 @@ class Puzzle:
             if node == self.end:
                 path.append(node)
                 return
+            # Check if not in path or current bank location is not previous
             if not path or node[2] != path[-1][2]:
                 path.append(node)
+            self.count += 1
             for n in self._successor(node):
                 if tuple(n) not in self.visited:
                     self.visited[tuple(n)] = True
@@ -214,7 +266,7 @@ class Puzzle:
         """
         stk = [node]
 
-        while len(stk):
+        while stk:
             top = stk[-1]
             stk.pop()
 
@@ -224,6 +276,7 @@ class Puzzle:
             if tuple(top) not in self.visited:
                 self.visited[tuple(top)] = True
                 path.append(top)
+            self.count += 1
             for n in self._successor(top):
                 if tuple(n) not in self.visited:
                     stk.append(n)
@@ -260,26 +313,24 @@ class Puzzle:
         :param path: Path to return
         :return: Path
         """
-        loc_visited = {}
-        queue = [Node(s=node)]
+        # Initialize priority queue
+        queue = PriorityQueue()
+        queue.push(Node(s=node), 0)
 
-        # Max number of iterations before stopping
-        max_itr = (node[0] + node[1]) ** 5
-        idx = 0
+        while queue:
+            curr_node = queue.pop()
+            self.visited[tuple(curr_node.state)] = True
 
-        while queue and idx < max_itr:
-            curr_node = queue.pop(0)
-            loc_visited[tuple(curr_node.state)] = True
-            idx += 1
-
+            # Stop when goal state is popped from queue
             if curr_node == self.end:
                 return self.backtrace(curr_node, path)
 
+            self.count += 1
             # Get all possible nodes from current
             for n in self._successor(curr_node.state):
                 loc_node = Node(curr_node, n)
 
-                if tuple(n) in loc_visited:
+                if tuple(n) in self.visited:
                     continue
 
                 # Calculate f(n) = g(n) + h(n)
@@ -287,9 +338,12 @@ class Puzzle:
                 loc_node.h = self.heuristic(n, loc_node.g)
                 loc_node.f = loc_node.g + loc_node.h
 
+                # If child.g > parent.g, then it's a worse path
+                # Cutoff for "cost-limited" search
                 if loc_node.g > curr_node.g and loc_node in queue:
                     continue
-                queue.append(loc_node)
+                queue.push(loc_node, loc_node.h)
+
 
 def print_err(*args, **kwargs):
     """ Print to stderr
@@ -310,23 +364,58 @@ def main(argc, argv):
         print_err("\tpython3 main.py <initial state file> <goal state file> <mode> <output file>")
         exit(1)
     else:
-        modes = ['bfs',
-                 'dfs',
-                 'iddfs',
-                 'astar']
+        # No debug flag
+        if __debug__:
+            modes = ['bfs',
+                     'dfs',
+                     'iddfs',
+                     'astar']
 
-        # Mode selection
-        if argv[2] in modes:
-            q = []
-            p1 = Puzzle(argv[0])
-            # Get correct method
-            mode = p1.get(argv[2])
-            mode(p1.start, q)
-            p1.to_file(argv[3], q)
-            p1.to_file(argv[3], q, 1)
+            # Mode selection
+            if argv[2] in modes:
+                q = []
+                p1 = Puzzle(argv[0])
+                # Get correct method
+                mode = p1.get(argv[2])
+                mode(p1.start, q)
+                p1.to_file(argv[3], q)
+                p1.to_file(argv[3], q, 1)
+            else:
+                exit(1)
         else:
-            exit(1)
+            # Debug mode
+            q = []
+            qq = []
+            qqq = []
+            qqqq = []
+            file = argv[0]
+            p1 = Puzzle(file)
+            p2 = Puzzle(file)
+            p3 = Puzzle(file)
+            p4 = Puzzle(file)
+
+            p1.bfs(p1.start, q)
+
+            count = p2.dfs(p2.start, qq)
+            p3.itr_dfs(p3.start, qqq)
+            p4.astar(p4.start, qqqq)
+
+            print("+--------------------------------+")
+            print("BFS moves: %d"% len(q))
+            print("BFS nodes expanded: %d"% p1.count)
+            print("+--------------------------------+")
+            print("DFS moves: %d" % len(qq))
+            print("DFS nodes expanded: %d" % p2.count)
+            print("DFS recursion depth: %d" % count)
+            print("+--------------------------------+")
+            print("ITR-DFS moves: %d" % len(qqq))
+            print("ITR-DFS nodes expanded: %d" % p3.count)
+            print("+--------------------------------+")
+            print("A-STAR moves: %d" % len(qqqq))
+            print("A-STAR nodes expanded: %d" % p4.count)
+            print("+--------------------------------+")
 
 
 if __name__ == "__main__":
     main(len(sys.argv[1:]), sys.argv[1:])
+
