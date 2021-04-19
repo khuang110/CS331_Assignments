@@ -292,8 +292,9 @@ class Puzzle:
             if tuple(top) not in self.visited and self.check_node(top):
                 self.visited[tuple(top)] = True
                 path.append(top)
-            self.count += 1
+
             for n in self._successor(top):
+                self.count += 1
                 if tuple(n) not in self.visited:
                     stk.append(n)
 
