@@ -1,0 +1,13 @@
+*.docx
+*.pdf
+.idea/*
+
+# HW 1
+hw1/Assignment1/
+hw1/*.zip
+hw1/assign1.py
+hw1/*.txt
+hw1/.idea/*
+
+# HW2
+hw2/.idea/*
