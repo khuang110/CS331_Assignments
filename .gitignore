@@ -1,16 +1,20 @@
 *.docx
 *.pdf
 .idea/*
+project2/.idea/*
+
 
 # HW 1
 hw1/Assignment1/
 hw1/*.zip
 hw1/assign1.py
 hw1/*.txt
-hw1/.idea/*
+hw1/.idea/
 
 # HW2
-hw2/.idea/*
+hw2/.idea/
 hw2/hw2/Debug/*
 hw2/pythonOthelloLib/*
 hw2/pythonOthelloLib.zip
+hw2/assn2.zip
+hw2/proj2.py
