@@ -71,7 +71,7 @@ void GameDriver::process_move(Player* curr_player, Player* opponent) {
 	while (invalid_move) {
 		curr_player->get_move(board, col, row);
 		if (!board->is_legal_move(col, row, curr_player->get_symbol())) {
-			std::cout << "Invalid move.\n";
+			std::cout << "\u001b[31mInvalid move.\u001b[0m\n";
 			continue;
 		} else {
 			std::cout << "Selected move: col = " << col << ", row = " << row << std::endl;

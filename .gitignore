@@ -11,3 +11,6 @@ hw1/.idea/*
 
 # HW2
 hw2/.idea/*
+hw2/hw2/Debug/*
+hw2/pythonOthelloLib/*
+hw2/pythonOthelloLib.zip
