@@ -1,0 +1,4 @@
+sklearn
+pandas==1.2.4
+json
+tqdm

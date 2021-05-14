@@ -313,16 +313,16 @@ class Puzzle:
         for i in path_[::-1]:
             path.append(i)
 
-    def heuristic(self, node, cost):
+    def heuristic(self, node):
         """ Calculate Euclidean distance
 
         :param node: Node for distance calculation
-        :param cost: Count from starting node
         :return:
         """
-        dx = self.start[0] - node[0]
-        dy = self.start[1] - node[1]
-        return cost * sqrt(dx * dx + dy * dy)
+        # Divide by number of animals boat can hold
+        dx = node[0] / 2
+        dy = node[1] / 2
+        return dx + dy
 
     def astar(self, node, path):
         """ A* algorithm.
@@ -355,7 +355,7 @@ class Puzzle:
 
                 # Calculate f(n) = g(n) + h(n)
                 loc_node.g = curr_node.g + 1             # Movement cost of 1
-                loc_node.h = self.heuristic(n, loc_node.g)
+                loc_node.h = self.heuristic(n)
                 loc_node.f = loc_node.g + loc_node.h
 
                 # If child.g > parent.g, then it's a worse path
