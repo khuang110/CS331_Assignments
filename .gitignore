@@ -1,7 +1,7 @@
 *.docx
 *.pdf
 .idea/*
-project2/.idea/*
+project2/.idea/
 
 
 # HW 1
