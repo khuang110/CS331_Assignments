@@ -1,0 +1,7 @@
+Run with:
+
+	python3 sentiment_analysis.py
+
+Notes:
+	It removes stop-words in the pre-processing step. 
+

@@ -1,6 +1,7 @@
 import doctest
 from classifier import *
+from pre_process import *
 
 if __name__ == "__main__":
-    df = pd.DataFrame
-    doctest.testfile("classifier.py", extraglobs={"c": Classifier([], df, [], [])})
+    doctest.testfile("pre_process.py")
+
